@@ -5,14 +5,12 @@ import 'package:dio/dio.dart';
 import '../mixin_bot_sdk_dart.dart';
 
 const mixinBaseUrl0 = 'https://api.mixin.one';
-const mixinBaseUrl1 = 'https://mixin-api.zeromesh.net';
-const _kRetryExtraKey = 'retry';
 
 class Client {
   Client({
     String? userId,
     String? sessionId,
-    String? privateKey,
+    Key? sessionPrivateKey,
     String? scp,
     String? baseUrl,
     String? accessToken,
@@ -30,84 +28,47 @@ class Client {
       transformer.jsonDecodeCallback = jsonDecodeCallback;
     }
     _dio.interceptors.addAll(interceptors);
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (
-        RequestOptions options,
-        RequestInterceptorHandler handler,
-      ) async {
-        var body = '';
-        if (options.data != null) {
-          body = jsonEncode(options.data);
-        }
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest:
+            (
+              options,
+              handler,
+            ) async {
+              var body = '';
+              if (options.data != null) {
+                body = jsonEncode(options.data);
+              }
 
-        final authToken = accessToken ??
-            signAuthTokenWithEdDSA(
-              userId,
-              sessionId,
-              privateKey,
-              scp,
-              options.method,
-              options.uri.toString().substring(options.baseUrl.length),
-              body,
-            );
-        options.headers['Authorization'] = 'Bearer $authToken';
-        handler.next(options);
-      },
-      onResponse:
-          (Response<dynamic> response, ResponseInterceptorHandler handler) {
-        final dynamic error = (response.data as Map)['error'];
-        if (error == null) return handler.next(response);
+              final authToken =
+                  accessToken ??
+                  signAuthTokenWithEdDSA(
+                    userId,
+                    sessionId,
+                    sessionPrivateKey,
+                    scp,
+                    options.method,
+                    options.uri.toString().substring(options.baseUrl.length),
+                    body,
+                  );
+              options.headers['Authorization'] = 'Bearer $authToken';
+              handler.next(options);
+            },
+        onResponse: (response, handler) {
+          final dynamic error = (response.data as Map)['error'];
+          if (error == null) return handler.next(response);
 
-        return handler.reject(
-          MixinApiError(
-            requestOptions: response.requestOptions,
-            response: response,
-            error: MixinError.fromJson(error as Map<String, dynamic>),
-          ),
-          true,
-        );
-      },
-      onError: (DioException e, ErrorInterceptorHandler handler) async {
-        if (!{mixinBaseUrl0, mixinBaseUrl1}.contains(dio.options.baseUrl)) {
-          return handler.next(e);
-        }
-        if ((e.requestOptions.extra[_kRetryExtraKey] as bool?) ?? false) {
-          return handler.next(e);
-        }
-        if (e is MixinApiError &&
-            e.error != null &&
-            (e.error! as MixinError).code < 500) {
-          return handler.next(e);
-        }
-
-        dio.options.baseUrl = dio.options.baseUrl == mixinBaseUrl0
-            ? mixinBaseUrl1
-            : mixinBaseUrl0;
-
-        try {
-          final response = await dio.request<dynamic>(
-            e.requestOptions.path,
-            data: e.requestOptions.data,
-            queryParameters: e.requestOptions.queryParameters,
-            cancelToken: e.requestOptions.cancelToken,
-            options: Options(
-              method: e.requestOptions.method,
-              headers: e.requestOptions.headers,
-              responseType: e.requestOptions.responseType,
-              contentType: e.requestOptions.contentType,
-              extra: <String, dynamic>{
-                _kRetryExtraKey: true,
-              },
+          return handler.reject(
+            MixinApiError(
+              requestOptions: response.requestOptions,
+              response: response,
+              error: MixinError.fromJson(error as Map<String, dynamic>),
             ),
-            onSendProgress: e.requestOptions.onSendProgress,
-            onReceiveProgress: e.requestOptions.onReceiveProgress,
+            true,
           );
-          return handler.resolve(response);
-        } catch (error) {
-          return handler.reject(error is DioException ? error : e);
-        }
-      },
-    ));
+        },
+      ),
+    );
     if (httpLogLevel != null) {
       _dio.interceptors.add(MixinLogInterceptor(httpLogLevel));
     }
@@ -127,7 +88,7 @@ class Client {
     _multisigApi = MultisigApi(dio: dio);
     _collectibleApi = CollectibleApi(dio: dio);
     _outputApi = OutputApi(dio: dio);
-    _utxoApi = UtxoApi(dio: dio, userId: userId);
+    _utxoApi = UtxoApi(accountApi, _tokenApi, dio: dio);
   }
 
   late Dio _dio;
@@ -173,6 +134,7 @@ class Client {
 
   SnapshotApi get snapshotApi => _snapshotApi;
 
+  @Deprecated('mixin has migrated to safe, use utxoApi instead.')
   TransferApi get transferApi => _transferApi;
 
   AddressApi get addressApi => _addressApi;

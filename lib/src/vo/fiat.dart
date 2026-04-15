@@ -15,13 +15,13 @@ class Fiat with EquatableMixin {
   Map<String, dynamic> toJson() => _$FiatToJson(this);
 
   @JsonKey(name: 'code')
-  String code;
+  final String code;
   @JsonKey(name: 'rate')
-  double rate;
+  final double rate;
 
   @override
   List<Object> get props => [
-        code,
-        rate,
-      ];
+    code,
+    rate,
+  ];
 }

@@ -18,19 +18,19 @@ class UserSession with EquatableMixin {
   Map<String, dynamic> toJson() => _$UserSessionToJson(this);
 
   @JsonKey(name: 'user_id')
-  String userId;
+  final String userId;
   @JsonKey(name: 'session_id')
-  String sessionId;
+  final String sessionId;
   @JsonKey(name: 'platform')
-  String? platform;
+  final String? platform;
   @JsonKey(name: 'public_key')
-  String? publicKey;
+  final String? publicKey;
 
   @override
   List<Object?> get props => [
-        userId,
-        sessionId,
-        platform,
-        publicKey,
-      ];
+    userId,
+    sessionId,
+    platform,
+    publicKey,
+  ];
 }

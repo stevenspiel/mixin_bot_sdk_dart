@@ -4,7 +4,11 @@ import 'package:test/test.dart';
 import 'config.dart';
 
 void main() {
-  final client = Client(userId: uid, sessionId: sid, privateKey: private);
+  final client = Client(
+    userId: uid,
+    sessionId: sid,
+    sessionPrivateKey: private,
+  );
 
   test('test getSnapshots', () async {
     try {
@@ -19,8 +23,9 @@ void main() {
 
   test('test getSnapshotById', () async {
     try {
-      final mixinResponse =
-          await client.snapshotApi.getSnapshotById(snapshotId);
+      final mixinResponse = await client.snapshotApi.getSnapshotById(
+        snapshotId,
+      );
       testPrint(mixinResponse.data);
     } catch (e) {
       if (e is MixinApiError) {
@@ -31,8 +36,9 @@ void main() {
 
   test('test getSnapshotsByAssetId', () async {
     try {
-      final mixinResponse =
-          await client.snapshotApi.getSnapshotsByAssetId(btcId);
+      final mixinResponse = await client.snapshotApi.getSnapshotsByAssetId(
+        btcId,
+      );
       testPrint(mixinResponse.data);
     } catch (e) {
       if (e is MixinApiError) {
@@ -43,8 +49,9 @@ void main() {
 
   test('test getSnapshotByTraceId', () async {
     try {
-      final mixinResponse =
-          await client.snapshotApi.getSnapshotByTraceId(traceId);
+      final mixinResponse = await client.snapshotApi.getSnapshotByTraceId(
+        traceId,
+      );
       testPrint(mixinResponse.data);
     } catch (e) {
       if (e is MixinApiError) {

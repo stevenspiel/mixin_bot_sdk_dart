@@ -20,27 +20,27 @@ class RawTransactionRequest with EquatableMixin {
   Map<String, dynamic> toJson() => _$RawTransactionRequestToJson(this);
 
   @JsonKey(name: 'asset_id')
-  String assetId;
+  final String assetId;
   @JsonKey(name: 'opponent_multisig')
-  OpponentMultisig opponentMultisig;
+  final OpponentMultisig opponentMultisig;
   @JsonKey(name: 'amount')
-  String amount;
+  final String amount;
   @JsonKey(name: 'pin')
-  String pin;
+  final String pin;
   @JsonKey(name: 'trace_id')
-  String? traceId;
+  final String? traceId;
   @JsonKey(name: 'memo')
-  String? memo;
+  final String? memo;
 
   @override
   List<Object?> get props => [
-        assetId,
-        opponentMultisig,
-        amount,
-        pin,
-        traceId,
-        memo,
-      ];
+    assetId,
+    opponentMultisig,
+    amount,
+    pin,
+    traceId,
+    memo,
+  ];
 }
 
 @JsonSerializable()
@@ -56,13 +56,13 @@ class OpponentMultisig with EquatableMixin {
   Map<String, dynamic> toJson() => _$OpponentMultisigToJson(this);
 
   @JsonKey(name: 'receivers')
-  List<String> receivers;
+  final List<String> receivers;
   @JsonKey(name: 'threshold')
-  int threshold;
+  final int threshold;
 
   @override
   List<Object?> get props => [
-        receivers,
-        threshold,
-      ];
+    receivers,
+    threshold,
+  ];
 }

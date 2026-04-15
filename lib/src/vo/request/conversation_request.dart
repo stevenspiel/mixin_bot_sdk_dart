@@ -17,6 +17,7 @@ class ConversationRequest with EquatableMixin {
     this.announcement,
     this.participants,
     this.duration,
+    this.randomId,
   });
 
   factory ConversationRequest.fromJson(Map<String, dynamic> json) =>
@@ -25,28 +26,31 @@ class ConversationRequest with EquatableMixin {
   Map<String, dynamic> toJson() => _$ConversationRequestToJson(this);
 
   @JsonKey(name: 'conversation_id')
-  String conversationId;
+  final String conversationId;
   @JsonKey(name: 'category')
-  ConversationCategory? category;
+  final ConversationCategory? category;
   @JsonKey(name: 'name')
-  String? name;
+  final String? name;
   @JsonKey(name: 'icon_base64')
-  String? iconBase64;
+  final String? iconBase64;
   @JsonKey(name: 'announcement')
-  String? announcement;
+  final String? announcement;
   @JsonKey(name: 'participants')
-  List<ParticipantRequest>? participants;
+  final List<ParticipantRequest>? participants;
   @JsonKey(name: 'duration')
-  int? duration;
+  final int? duration;
+  @JsonKey(name: 'random_id')
+  final String? randomId;
 
   @override
   List<Object?> get props => [
-        conversationId,
-        category,
-        name,
-        iconBase64,
-        announcement,
-        participants,
-        duration,
-      ];
+    conversationId,
+    category,
+    name,
+    iconBase64,
+    announcement,
+    participants,
+    duration,
+    randomId,
+  ];
 }

@@ -1,10 +1,17 @@
 // Get APP data from https://developers.mixin.one/dashboard
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:mixin_bot_sdk_dart/mixin_bot_sdk_dart.dart';
 
-const uid = '23cec735-ffb8-435d-8c2c-e352c98a8b59';
-const sid = '63f600c8-7247-4a02-8a71-1546c3a2abdb';
-const private =
-    '2jQRewaz0YbZ80VXF7Z4YbU0Dyg8YT91zLOQkkhbcivJ25MePOpCw09dM6-jBu0vCyREZ3mk4zR83q0h4CFkgA';
+final Map<String, dynamic> _keystore = () {
+  final content = File('.keystore.json').readAsStringSync();
+  return json.decode(content) as Map<String, dynamic>;
+}();
+
+final uid = _keystore['app_id'] as String;
+final sid = _keystore['session_id'] as String;
+final private = Key.fromHexSeed(_keystore['session_private_key'] as String);
 
 final uids = <String>['773e5e77-4107-45c2-b648-8fc722ed77f5'];
 
@@ -27,13 +34,16 @@ final mockAddressRequest = AddressRequest(assetId: btcId, pin: '');
 
 const multisigId = '';
 final mockPinRequest = PinRequest(pin: '', oldPin: '');
-final mockOpponentMultisig =
-    OpponentMultisig(receivers: <String>['', ''], threshold: 10);
+final mockOpponentMultisig = OpponentMultisig(
+  receivers: <String>['', ''],
+  threshold: 10,
+);
 final mockRawTransactionRequest = RawTransactionRequest(
-    assetId: btcId,
-    opponentMultisig: mockOpponentMultisig,
-    amount: '100',
-    pin: '');
+  assetId: btcId,
+  opponentMultisig: mockOpponentMultisig,
+  amount: '100',
+  pin: '',
+);
 
 void testPrint(Object? object) {
   // ignore: avoid_print

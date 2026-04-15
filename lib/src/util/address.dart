@@ -11,7 +11,7 @@ const kMixAddressVersion = 2;
 const kMainAddressPrefix = 'XIN';
 const kMixAddressPrefix = 'MIX';
 
-enum _MemberType {
+enum MixMemberType {
   xin,
   uuid,
 }
@@ -31,8 +31,11 @@ Uint8List? getPublicFromMainnetAddress(String address) {
       ...payload,
     ]);
     final checksum = sha3Hash(msg);
-    if (!Uint8List.sublistView(checksum, 0, 4)
-        .equals(Uint8List.sublistView(data, 64))) {
+    if (!Uint8List.sublistView(
+      checksum,
+      0,
+      4,
+    ).equals(Uint8List.sublistView(data, 64))) {
       return null;
     }
     return Uint8List.fromList(payload);
@@ -55,10 +58,27 @@ String getMainnetAddressFromPublic(Uint8List pub) {
 }
 
 class MixAddress {
-  MixAddress({
+  MixAddress._private({
     required this.members,
     required this.threshold,
+    required this.memberType,
   });
+
+  factory MixAddress.fromUuid(List<String> members, int threshold) =>
+      MixAddress._private(
+        members: members,
+        threshold: threshold,
+        memberType: MixMemberType.uuid,
+      );
+
+  factory MixAddress.fromMainNetMixAddress(
+    List<String> members,
+    int threshold,
+  ) => MixAddress._private(
+    members: members,
+    threshold: threshold,
+    memberType: MixMemberType.xin,
+  );
 
   static MixAddress? tryParse(String address) {
     try {
@@ -83,8 +103,11 @@ class MixAddress {
     ]);
     final checkSum = sha3Hash(msg);
 
-    if (!Uint8List.sublistView(checkSum, 0, 4)
-        .equals(Uint8List.sublistView(data, data.length - 4))) {
+    if (!Uint8List.sublistView(
+      checkSum,
+      0,
+      4,
+    ).equals(Uint8List.sublistView(data, data.length - 4))) {
       throw Exception('invalid checksum. $address');
     }
 
@@ -105,27 +128,20 @@ class MixAddress {
 
     final memberData = Uint8List.sublistView(payload, 3);
     final members = <String>[];
+
     if (memberData.length == total * 16) {
       for (var i = 0; i < total; i++) {
         final id = Uuid.unparse(memberData, offset: i * 16);
         members.add(id);
       }
-      return MixAddress(
-        members: members,
-        threshold: threshold,
-      );
-    }
-
-    if (memberData.length == total * 64) {
+      return MixAddress.fromUuid(members, threshold);
+    } else if (memberData.length == total * 64) {
       for (var i = 0; i < total; i++) {
         final pub = Uint8List.sublistView(memberData, i * 64, (i + 1) * 64);
         final address = getMainnetAddressFromPublic(pub);
         members.add(address);
       }
-      return MixAddress(
-        members: members,
-        threshold: threshold,
-      );
+      return MixAddress.fromMainNetMixAddress(members, threshold);
     }
 
     throw Exception('invalid member data. $memberData');
@@ -133,6 +149,7 @@ class MixAddress {
 
   final List<String> members;
   final int threshold;
+  final MixMemberType memberType;
 
   String toAddress() {
     if (members.length > 255) {
@@ -149,12 +166,12 @@ class MixAddress {
     ]);
 
     final memberData = <Uint8List>[];
-    _MemberType? type;
+    MixMemberType? type;
     for (final member in members) {
       if (member.startsWith(kMainAddressPrefix)) {
         if (type == null) {
-          type = _MemberType.xin;
-        } else if (type != _MemberType.xin) {
+          type = MixMemberType.xin;
+        } else if (type != MixMemberType.xin) {
           throw Exception('invalid member type. $member');
         }
         final pub = getPublicFromMainnetAddress(member);
@@ -164,8 +181,8 @@ class MixAddress {
         memberData.add(pub);
       } else {
         if (type == null) {
-          type = _MemberType.uuid;
-        } else if (type != _MemberType.uuid) {
+          type = MixMemberType.uuid;
+        } else if (type != MixMemberType.uuid) {
           throw Exception('invalid member type. $member');
         }
         try {

@@ -18,19 +18,19 @@ class Chain with EquatableMixin {
   Map<String, dynamic> toJson() => _$ChainToJson(this);
 
   @JsonKey(name: 'chain_id')
-  String chainId;
-  String name;
-  String symbol;
+  final String chainId;
+  final String name;
+  final String symbol;
   @JsonKey(name: 'icon_url')
-  String iconUrl;
-  int threshold;
+  final String iconUrl;
+  final int threshold;
 
   @override
   List<Object?> get props => [
-        chainId,
-        name,
-        symbol,
-        iconUrl,
-        threshold,
-      ];
+    chainId,
+    name,
+    symbol,
+    iconUrl,
+    threshold,
+  ];
 }

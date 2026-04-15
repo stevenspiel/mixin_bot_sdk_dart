@@ -17,16 +17,16 @@ class CircleResponse with EquatableMixin {
   Map<String, dynamic> toJson() => _$CircleResponseToJson(this);
 
   @JsonKey(name: 'circle_id', disallowNullValue: true)
-  String circleId;
+  final String circleId;
   @JsonKey(name: 'name', disallowNullValue: true)
-  String name;
+  final String name;
   @JsonKey(name: 'created_at', disallowNullValue: true)
-  DateTime createdAt;
+  final DateTime createdAt;
 
   @override
   List<Object> get props => [
-        circleId,
-        name,
-        createdAt,
-      ];
+    circleId,
+    name,
+    createdAt,
+  ];
 }

@@ -17,16 +17,16 @@ class BlazeAckMessage with EquatableMixin {
   Map<String, dynamic> toJson() => _$BlazeAckMessageToJson(this);
 
   @JsonKey(name: 'message_id')
-  String messageId;
+  final String messageId;
   @JsonKey(name: 'status')
-  String status;
+  final String status;
   @JsonKey(name: 'expire_at')
-  int? expireAt;
+  final int? expireAt;
 
   @override
   List<Object?> get props => [
-        messageId,
-        status,
-        expireAt,
-      ];
+    messageId,
+    status,
+    expireAt,
+  ];
 }

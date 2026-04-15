@@ -1,3 +1,118 @@
+## 1.5.0
+* update version
+
+## 1.4.3
+* update version
+
+## 1.4.2
+* Add displaySymbol, displayName, precision, level to Token class
+
+## 1.4.1
+
+* Add `groupConversationId` and `uniqueConversationId` utility functions for generating deterministic group conversation IDs
+* Add `randomId` field to `ConversationRequest` class
+
+## 1.4.0
+
+* update dart version
+
+## 1.3.2
+
+* add `TokenApi.fetchAssets` api
+
+## 1.3.1
+
+* Revert to 1.2.10 with following exceptions preserved:
+* Mark `deactive` and `deactiveVerification` as deprecated in favor of `deactivate` and `deactivateVerification`
+* Fix `queryAsset` and `search` api
+
+## 1.3.0
+
+* Fix message offset api
+
+## 1.2.12
+
+* Revert offset parameter type from `String?` to `int?` in all APIs
+
+## 1.2.11
+
+* Fix URL encoding for path parameters
+* Fix query parameters handling for optional values
+* Change offset parameter type from `String?` to `int?` in all APIs
+* Mark `deactive` and `deactiveVerification` as deprecated in favor of `deactivate` and `deactivateVerification`
+
+## 1.2.10
+
+* add `kernel_asset_id` field to `SafeSnapshot`
+
+## 1.2.9
+
+* update verification response
+
+## 1.2.8
+
+* Fix code generation for `Asset` class.
+
+## 1.2.7
+
+* `Asset` add `displaySymbol` and `displayName` field.
+
+## 1.2.6
+
+* fix queryAssets and topAsset
+* downgrade `collections` to 1.18.0
+
+## 1.2.5
+
+* `User` add `Membership` field.
+
+## 1.2.4
+
+* More example
+
+## 1.2.3
+
+* `Token` add `collection_hash` field.
+
+## 1.2.2
+
+* add inscription item and collection api
+
+## 1.2.1
+
+* add removeSticker api
+
+## 1.2.0
+
+**BREAKING CHANGE**
+
+* Remove fallback to `zeromesh` host when api errored.
+* Introduce `Key` class to replace `String spendKey` and `String sessionPrivateKey`
+
+**Other**
+
+* allow preference for asset fee.
+* allow traceId specification
+
+## 1.1.0
+
+* improve transaction to multi uuid receiver
+* add transaction to MixAddress
+
+## 1.0.4
+
+* make `getOutputs()` members parameter nullable
+* add tip pin update apis
+* support withdrawal
+
+## 1.0.3
+
+* fix not compat with dart 3.0
+
+## 1.0.2
+
+* fix tx encoder
+
 ## 1.0.1
 
 * add utxo api

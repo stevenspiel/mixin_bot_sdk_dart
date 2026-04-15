@@ -1,4 +1,3 @@
-// ignore_for_file: cascade_invocations
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -11,23 +10,31 @@ import '../../mixin_bot_sdk_dart.dart';
 import 'encoder.dart';
 import 'multisigs.dart';
 
-class SafeTransactionRecipient {
-  SafeTransactionRecipient({
-    required this.members,
-    required this.threshold,
-    required this.mixAddress,
+class WithdrawalTransactionRecipient implements SafeTransactionRecipient {
+  WithdrawalTransactionRecipient({
+    required this.destination,
+    required this.tag,
     required this.amount,
-    this.destination,
-    this.tag,
-  });
+  }) : assert(destination.isNotEmpty, 'destination is empty');
+
+  final String destination;
+  final String? tag;
+  final String amount;
+}
+
+class UserTransactionRecipient implements SafeTransactionRecipient {
+  UserTransactionRecipient({
+    required this.members,
+    required this.amount,
+    required this.threshold,
+  }) : assert(members.isNotEmpty, 'members is empty');
 
   final List<String> members;
-  final int threshold;
-  final String mixAddress;
   final String amount;
-  final String? destination;
-  final String? tag;
+  final int threshold;
 }
+
+sealed class SafeTransactionRecipient {}
 
 class DepositData {
   DepositData({
@@ -100,7 +107,7 @@ class Output {
   Output({
     required this.type,
     required this.amount,
-    this.keys,
+    this.keys = const [],
     this.withdrawal,
     this.script,
     this.mask,
@@ -108,7 +115,7 @@ class Output {
 
   final OutputType? type;
   final String amount;
-  final List<String>? keys;
+  final List<String> keys;
   final WithdrawalData? withdrawal;
   final String? script;
   final String? mask;
@@ -122,6 +129,7 @@ class SafeTransaction {
     required this.extra,
     required this.inputs,
     required this.outputs,
+    this.reference = const [],
     this.version = kTxVersionHashSignature,
   });
 
@@ -131,20 +139,19 @@ class SafeTransaction {
   final String extra;
   final List<Input> inputs;
   final List<Output> outputs;
+  final List<String> reference;
 }
 
-SafeTransactionRecipient buildSafeTransactionRecipient({
+@Deprecated('use UserTransactionRecipient instead')
+UserTransactionRecipient buildSafeTransactionRecipient({
   required List<String> members,
   required int threshold,
   required String amount,
-}) =>
-    SafeTransactionRecipient(
-      members: members,
-      threshold: threshold,
-      amount: amount,
-      mixAddress:
-          MixAddress(members: members, threshold: threshold).toAddress(),
-    );
+}) => UserTransactionRecipient(
+  members: members,
+  threshold: threshold,
+  amount: amount,
+);
 
 /// Get unspent utxos for recipients.
 ///
@@ -174,8 +181,9 @@ SafeTransactionRecipient buildSafeTransactionRecipient({
 SafeTransaction buildSafeTransaction({
   required List<SafeUtxoOutput> utxos,
   required List<SafeTransactionRecipient> rs,
-  required List<SafeGhostKey> gs,
+  required List<SafeGhostKey?> gs,
   required String extra,
+  String? reference,
 }) {
   if (utxos.isEmpty) {
     throw Exception('utxo list is empty');
@@ -194,25 +202,36 @@ SafeTransaction buildSafeTransaction({
     inputs.add(Input(hash: utxo.transactionHash, index: utxo.outputIndex));
   }
 
+  if (rs.length != gs.length) {
+    throw Exception('recipient and ghost key count not match');
+  }
+
   final outputs = <Output>[];
   for (var i = 0; i < rs.length; i++) {
     final recipient = rs[i];
-    if (recipient.destination != null && recipient.destination!.isNotEmpty) {
-      outputs.add(Output(
-          type: OutputType.withdrawalSubmit,
-          amount: recipient.amount,
-          withdrawal: WithdrawalData(
-            address: recipient.destination!,
-            tag: recipient.tag ?? '',
-          )));
-    } else {
-      outputs.add(Output(
-        type: OutputType.script,
-        amount: recipient.amount,
-        keys: gs[i].keys,
-        mask: gs[i].mask,
-        script: encodeScript(recipient.threshold),
-      ));
+    switch (recipient) {
+      case WithdrawalTransactionRecipient():
+        outputs.add(
+          Output(
+            type: OutputType.withdrawalSubmit,
+            amount: recipient.amount,
+            withdrawal: WithdrawalData(
+              address: recipient.destination,
+              tag: recipient.tag ?? '',
+            ),
+          ),
+        );
+      case UserTransactionRecipient():
+        assert(gs[i] != null, 'ghost key is null for recipient $i');
+        outputs.add(
+          Output(
+            type: OutputType.script,
+            amount: recipient.amount,
+            keys: gs[i]!.keys,
+            mask: gs[i]!.mask,
+            script: encodeScript(recipient.threshold),
+          ),
+        );
     }
   }
 
@@ -221,40 +240,18 @@ SafeTransaction buildSafeTransaction({
     extra: extra,
     inputs: inputs,
     outputs: outputs,
+    reference: reference != null ? [reference] : const [],
   );
 }
-
-const _kMagic = [0x77, 0x77];
 
 String encodeSafeTransaction(
   SafeTransaction tx, {
   List<Map<int, String>> sigs = const [],
 }) {
   final encoder = Encoder()
-    ..write(_kMagic)
-    ..write([0x00, tx.version])
-    ..write(hex.decode(tx.asset));
-
-  encoder.writeInt(tx.inputs.length);
-  for (final input in tx.inputs) {
-    encoder.encodeInput(input);
-  }
-
-  encoder.writeInt(tx.outputs.length);
-  for (final output in tx.outputs) {
-    encoder.encodeOutput(output);
-  }
-
-  encoder.writeInt(0);
-  final extra = utf8.encode(tx.extra);
-  encoder.writeUint32(extra.length);
-  encoder.write(extra);
-
-  encoder.writeInt(sigs.length);
-  for (final sig in sigs) {
-    encoder.encodeSignature(sig);
-  }
-
+    ..encodeTransaction(tx)
+    ..writeInt(sigs.length);
+  sigs.forEach(encoder.encodeSignature);
   return encoder.toHex();
 }
 
@@ -262,13 +259,16 @@ String signSafeTransaction({
   required SafeTransaction tx,
   required List<SafeUtxoOutput> utxos,
   required List<String> views,
-  required String privateKey,
+  required Key privateKey,
 }) {
   final raw = encodeSafeTransaction(tx);
   final msg = Uint8List.fromList(blake3(hex.decode(raw)));
 
-  final spenty =
-      sha512Hash(Uint8List.fromList(hex.decode(privateKey.substring(0, 64))));
+  assert(
+    privateKey.raw.length >= 32,
+    'invalid private key length: ${privateKey.raw.length}',
+  );
+  final spenty = sha512Hash(privateKey.raw.sublist(0, 32));
 
   final y = Scalar()..setBytesWithClamping(spenty.sublist(0, 32));
   final signaturesMap = <Map<int, String>>[];
@@ -287,7 +287,9 @@ String signSafeTransaction({
     final index = utxo.keys.indexOf(key.publicKey().hexString());
     if (index == -1) {
       throw Exception(
-          'invalid public key for the input: $input, ${key.publicKey().hexString()}');
+        'invalid public key for the input: $i ${utxo.keys}, ${key.publicKey().hexString()}.\n'
+        'maybe this is a invalid spendKey: ${privateKey.publicKey().toHexString()}',
+      );
     }
     final sigs = <int, String>{};
     final sig = key.sign(msg);

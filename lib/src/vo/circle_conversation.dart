@@ -19,21 +19,21 @@ class CircleConversation with EquatableMixin {
   Map<String, dynamic> toJson() => _$CircleConversationToJson(this);
 
   @JsonKey(name: 'conversation_id')
-  String conversationId;
+  final String conversationId;
   @JsonKey(name: 'circle_id')
-  String circleId;
+  final String circleId;
   @JsonKey(name: 'user_id')
-  String? userId;
+  final String? userId;
   @JsonKey(name: 'created_at')
-  DateTime createdAt;
-  String? pinTime;
+  final DateTime createdAt;
+  final String? pinTime;
 
   @override
   List<Object?> get props => [
-        conversationId,
-        circleId,
-        userId,
-        createdAt,
-        pinTime,
-      ];
+    conversationId,
+    circleId,
+    userId,
+    createdAt,
+    pinTime,
+  ];
 }

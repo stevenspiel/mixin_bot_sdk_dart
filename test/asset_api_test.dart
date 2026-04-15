@@ -4,7 +4,11 @@ import 'package:test/test.dart';
 import 'config.dart';
 
 void main() {
-  final client = Client(userId: uid, sessionId: sid, privateKey: private);
+  final client = Client(
+    userId: uid,
+    sessionId: sid,
+    sessionPrivateKey: private,
+  );
 
   test('test getAssetById', () async {
     try {
@@ -46,6 +50,8 @@ void main() {
     } catch (e) {
       if (e is MixinApiError) {
         testPrint(e.error);
+      } else {
+        rethrow;
       }
     }
   });
@@ -64,8 +70,9 @@ void main() {
   test('test getTopAssets', () async {
     try {
       final mixinResponse = await client.assetApi.getTopAssets();
-      testPrint(mixinResponse.data);
-    } catch (e) {
+      testPrint('top asset: ${mixinResponse.data}');
+    } catch (e, stacktrace) {
+      testPrint('error: $e $stacktrace');
       if (e is MixinApiError) {
         testPrint(e.error);
       }

@@ -26,46 +26,46 @@ class App with EquatableMixin {
   Map<String, dynamic> toJson() => _$AppToJson(this);
 
   @JsonKey(name: 'app_id')
-  String appId;
+  final String appId;
   @JsonKey(name: 'app_number')
-  String appNumber;
+  final String appNumber;
   @JsonKey(name: 'home_uri')
-  String homeUri;
+  final String homeUri;
   @JsonKey(name: 'redirect_uri')
-  String redirectUri;
+  final String redirectUri;
   @JsonKey(name: 'name')
-  String name;
+  final String name;
   @JsonKey(name: 'icon_url')
-  String iconUrl;
+  final String iconUrl;
   @JsonKey(name: 'category')
-  String category;
+  final String category;
   @JsonKey(name: 'description')
-  String description;
+  final String description;
   @JsonKey(name: 'capabilites')
-  List<String>? capabilites;
+  final List<String>? capabilites;
   @JsonKey(name: 'app_secret')
-  String appSecret;
+  final String appSecret;
   @JsonKey(name: 'creator_id')
-  String creatorId;
+  final String creatorId;
   @JsonKey(name: 'resource_patterns')
-  List<String>? resourcePatterns;
+  final List<String>? resourcePatterns;
   @JsonKey(name: 'updated_at')
-  DateTime? updatedAt;
+  final DateTime? updatedAt;
 
   @override
   List<Object?> get props => [
-        appId,
-        appNumber,
-        homeUri,
-        redirectUri,
-        name,
-        iconUrl,
-        category,
-        description,
-        capabilites,
-        appSecret,
-        creatorId,
-        resourcePatterns,
-        updatedAt,
-      ];
+    appId,
+    appNumber,
+    homeUri,
+    redirectUri,
+    name,
+    iconUrl,
+    category,
+    description,
+    capabilites,
+    appSecret,
+    creatorId,
+    resourcePatterns,
+    updatedAt,
+  ];
 }

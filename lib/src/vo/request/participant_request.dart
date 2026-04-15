@@ -19,18 +19,18 @@ class ParticipantRequest with EquatableMixin {
   Map<String, dynamic> toJson() => _$ParticipantRequestToJson(this);
 
   @JsonKey(name: 'user_id')
-  String userId;
+  final String userId;
   @JsonKey(name: 'role')
-  ParticipantRole? role;
+  final ParticipantRole? role;
   @JsonKey(name: 'created_at')
-  DateTime? createdAt;
+  final DateTime? createdAt;
 
   @override
   List<Object?> get props => [
-        userId,
-        role,
-        createdAt,
-      ];
+    userId,
+    role,
+    createdAt,
+  ];
 }
 
 const kRelationshipActionAdd = 'ADD';
