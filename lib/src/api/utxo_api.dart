@@ -11,8 +11,15 @@ import '../../mixin_bot_sdk_dart.dart';
 
 const _kLimit = 500;
 
-typedef MixinTransactionRelay = Future<MixinResponse<List<TransactionResponse>>>
-    Function(List<TransactionRequest> transactionRequests);
+typedef MixinTransactionRelay =
+    Future<MixinResponse<List<TransactionResponse>>> Function(
+      List<TransactionRequest> transactionRequests,
+    );
+
+typedef MixinVerificationRelay =
+    Future<MixinResponse<List<TransactionResponse>>> Function(
+      List<TransactionRequest> transactionRequests,
+    );
 
 class UtxoApi {
   UtxoApi(this._accountApi, this._tokenApi, {required this.dio});
@@ -304,6 +311,7 @@ class UtxoApi {
     int threshold = 1,
     String? memo,
     String? transactionRequestId,
+    MixinVerificationRelay? verificationRelay,
     MixinTransactionRelay? transactionRelay,
   }) async {
     assert(receiverIds.isNotEmpty, 'receiverIds is empty');
@@ -352,7 +360,7 @@ class UtxoApi {
     // verify safe transaction
     final raw = encodeSafeTransaction(tx);
     final requestId = transactionRequestId ?? const Uuid().v4();
-    final verifiedTx = (await transactionRequest(
+    final verifiedTx = (await (verificationRelay ?? transactionRequest)(
       [
         TransactionRequest(
           requestId: requestId,
@@ -423,6 +431,7 @@ class UtxoApi {
     String? memo,
     bool preferAssetFeeOverChainFee = false,
     String? transactionRequestId,
+    MixinVerificationRelay? verificationRelay,
     MixinTransactionRelay? transactionRelay,
   }) async {
     final token = (await _tokenApi.getAssetById(asset)).data;
@@ -461,6 +470,7 @@ class UtxoApi {
       spendKey: spendKey,
       transactionRequestId: transactionRequestId,
       transactions: transactionRelay ?? transactions,
+      transactionRequest: verificationRelay ?? transactionRequest,
     );
   }
 
@@ -474,6 +484,7 @@ class UtxoApi {
     required String? tag,
     required Key spendKey,
     required MixinTransactionRelay transactions,
+    required MixinVerificationRelay transactionRequest,
     int threshold = 1,
     String? memo,
     String? transactionRequestId,
